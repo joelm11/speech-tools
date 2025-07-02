@@ -9,12 +9,16 @@ namespace SpeechTools {
  * method, which gets called in the base class's processLoop().
  *
  */
-template <class InType, class OutType>
+template <template <typename> class QueueType, class InType, class OutType>
 class SpeechFilter {
   using ThreadType = std::thread;
 
  public:
-  SpeechFilter(InType& in, OutType& out) : inQueue_(in), outQueue_(out) {}
+  SpeechFilter(QueueType<InType>& in, QueueType<OutType>& out)
+      : inQueue_(in), outQueue_(out) {
+    running_ = true;
+    proc_thread_ = ThreadType([this]() { processLoop(); });
+  }
 
   virtual ~SpeechFilter() {
     stop();
@@ -23,13 +27,24 @@ class SpeechFilter {
     }
   }
 
+  void start() {
+    if (!running_) {
+      running_ = true;
+      proc_thread_ = ThreadType([this] { processLoop(); });
+    }
+  }
+
+  void stop() { running_ = false; }
+
  protected:
+  virtual OutType process(const InType& input_data) = 0;
+
   void processLoop() {
     InType input_data;
 
     while (running_.load(std::memory_order_relaxed)) {
       if (inQueue_.try_pop(input_data)) {
-        OutType output_data = processData(input_data);
+        OutType output_data = process(input_data);
         while (!outQueue_.try_push(output_data) &&
                running_.load(std::memory_order_relaxed)) {
           // Do something if push repeatedly fails (?)
@@ -42,14 +57,9 @@ class SpeechFilter {
   }
 
  private:
-  virtual OutType process() = 0;
-
-  void start() { running_ = true; }
-  void stop() { running_ = false; }
-
   std::atomic<bool> running_ = false;
-  InType inQueue_;
-  OutType outQueue_;
+  QueueType<InType>& inQueue_;
+  QueueType<OutType>& outQueue_;
   ThreadType proc_thread_;
 };
 }  // namespace SpeechTools
