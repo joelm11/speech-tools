@@ -1,3 +1,4 @@
+#pragma once
 #include <atomic>
 #include <memory>
 #include <stdexcept>
@@ -17,6 +18,8 @@
 template <typename T>
 class SPSCLockFreeQueue {
  public:
+  using ValueType = T;
+
   /**
    * @brief Constructs an SPSC queue with a specified capacity.
    * @param capacity The maximum number of elements the queue can hold.

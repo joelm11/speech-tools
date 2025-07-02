@@ -3,13 +3,23 @@
 #include <atomic>
 #include <thread>
 
+#include "spsc_queue.hh"
+
 namespace SpeechTools {
+
+// Concept to check that the queue's value_type matches the expected type.
+template <typename Queue, typename ExpectedType>
+concept QueueWithValueType = requires {
+  typename Queue::ValueType;
+  requires std::same_as<typename Queue::ValueType, ExpectedType>;
+};
 
 /** @brief Base class for all filters. Deriving filters implement the process()
  * method, which gets called in the base class's processLoop().
  *
  */
-template <template <typename> class QueueType, class InType, class OutType>
+template <class InType, class OutType,
+          template <typename> class QueueType = SPSCLockFreeQueue>
 class SpeechFilter {
   using ThreadType = std::thread;
 

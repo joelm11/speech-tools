@@ -37,3 +37,4 @@ if(STANDALONE_BUILD AND DEBUG)
 endif()
 
 add_subdirectory(src/common)
+add_subdirectory(src/noise_reduction)

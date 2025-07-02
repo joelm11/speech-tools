@@ -7,10 +7,10 @@ using IntQueue = SPSCLockFreeQueue<int>;
 
 // Dummy filter: multiplies input by 2
 class DummyFilter
-    : public SpeechTools::SpeechFilter<SPSCLockFreeQueue, int, int> {
+    : public SpeechTools::SpeechFilter<int, int, SPSCLockFreeQueue> {
  public:
   DummyFilter(SPSCLockFreeQueue<int>& in, SPSCLockFreeQueue<int>& out)
-      : SpeechTools::SpeechFilter<SPSCLockFreeQueue, int, int>(in, out) {}
+      : SpeechTools::SpeechFilter<int, int, SPSCLockFreeQueue>(in, out) {}
 
  protected:
   virtual int process(const int& input_data) override { return input_data * 2; }
